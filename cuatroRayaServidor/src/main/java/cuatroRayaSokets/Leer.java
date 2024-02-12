@@ -61,7 +61,7 @@ public class Leer implements Runnable{
 					dimitir(Integer.parseInt(valores[1]));//partidaID
 					break;
 				case "dimite":
-					dimitir();//partidaID
+					dimitir();
 					break;
 				case "activos":
 					getActiveUsers();
@@ -194,51 +194,54 @@ public class Leer implements Runnable{
 		escribir.start();
 	}
 	
-	void refrescarPartida() {//devuelve el tamaño del tablero y si hay algun turno usuario-columna-fila&usuario..., es el boton de continue en partidas
-		String datos=base.getTurnos(this.partidaAct);
+	void refrescarPartida() {//devuelve si hay algun turno usuario-columna-fila&usuario...
+		String datos="null";
+		System.out.println("La partida a refrescar es: "+this.partidaAct);
+		if(this.partidaAct!=0) {
+			datos=base.getTurnos(this.partidaAct);
+		}
+		System.out.println("Los turnos son: "+datos);
 		
 		Thread escribir = new Thread(new Escribir(canal,"Array"+"-"+datos));
 		escribir.start();
 	}
 	
 	void turno(int columna, int fila) {
-		if(!/*<|---El ultimo turno NO es del usuario*/base.getUltimoTurnoUsuario(this.partidaAct).equals(this.usser)
-				&&base.isTerminada(partidaAct).equals(false)) {	//si no esta acabada claro
-			
-			if(base.ocupado(partidaAct, columna, fila).equals(false)) {//si no esta ocupado coloca
-				base.insertPosicion(partidaAct, usser, columna, fila);
-				Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"true"));
-				escribir.start();
-			}else {
-				Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"false"));
-				escribir.start();
-			}
-			
-		}else {
-			//si es el usuario1 y devolvio null es el primer turno
-			if(base.getUsuario1(this.partidaAct).equals(this.usser)&&base.getUltimoTurnoUsuario(this.partidaAct).equals(null)) {				
-				
-				if(base.ocupado(partidaAct, columna, fila).equals(false)&&base.isTerminada(partidaAct).equals(false)) {//si no esta ocupado coloca
-					base.insertPosicion(partidaAct, usser, columna, fila);
-					Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"true"));
-					escribir.start();
-				}else {
-					Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"false"));
-					escribir.start();
-				}
-			}else {
-				Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"false"));
-				escribir.start();
-			}
-		}
 		
+		if(base.getUsuario1(this.partidaAct).equals(this.usser)&&base.getUltimoTurnoUsuario(this.partidaAct).equals("null")) {				
+//			base.insertPosicion(partidaAct, usser, columna, fila);
+			System.out.println("todo bien coloca ficha turno 1");
+			Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"true"));
+			escribir.start();
+		}//else if(!/*<|---El ultimo turno NO es del usuario*/base.getUltimoTurnoUsuario(this.partidaAct).equals(this.usser)
+//				&&base.isTerminada(partidaAct).equals(false)) {	//si no esta acabada claro
+//			
+//			System.out.println("La partida usuario columna fila "+partidaAct+usser+columna+fila);
+//			if(base.ocupado(partidaAct, columna, fila)==false) {//si no esta ocupado coloca
+//				base.insertPosicion(partidaAct, usser, columna, fila);
+//				Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"true"));
+//				System.out.println("todo bien coloca ficha");
+//				escribir.start();
+//			}else {
+//				Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"false"));
+//				System.out.println("esta ocupado");
+//				escribir.start();
+//			}
+//		//si es el usuario1 y devolvio null es el primer turno
+//		}else {
+//			Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"false"));
+//			System.out.println("ni le toca ni es el 1");
+//			escribir.start();
+//		}
 	}
+		
+	
 	
 	void isGanador() {
 	    int tamaño = base.getTablero(partidaAct);
 	    String turnos = base.getTurnos(partidaAct);
 	    String[] divididos = turnos.split("_"); // usuario&columna&fila
-	    String[] lastUser=divididos[divididos.length].split("&");
+	    String[] lastUser=divididos[divididos.length-1].split("&");
 	    
 	    // Crear una matriz para representar el tablero
 	    String[][] tablero = new String[tamaño][tamaño];
@@ -336,14 +339,18 @@ public class Leer implements Runnable{
 	void getUltimoTurno() {//devuelve usuario&columna&fila
 		String turnos=base.getTurnos(this.partidaAct);
 		String[] divididos=turnos.split("_");
-		Thread escribir = new Thread(new Escribir(canal,"Array"+"-"+divididos[divididos.length]));
+		Thread escribir = new Thread(new Escribir(canal,"Array"+"-"+divididos[divididos.length-1]));
 		escribir.start();
 	}
 	
 	void dimitir(int partida) {
-		if(base.isTerminada(partida).equals(false)) {
-			base.dimitir(partida);
+		if(partida!=0) {
+			System.out.println("La partida es: "+partida);
+			if(base.isTerminada(partida).equals(false)) {
+				base.dimitir(partida);
+			}
 		}
+		
 	}
 	
 	void dimitir() {
