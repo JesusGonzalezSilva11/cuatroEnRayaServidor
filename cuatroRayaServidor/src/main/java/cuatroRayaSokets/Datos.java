@@ -193,7 +193,6 @@ public class Datos {
 			
 			if (resultSet.next()) {
 				usuario = resultSet.getString("usuario").trim();
-				System.out.println("ultimo usuario: "+usuario);
 	        }
 			resultSet.close();
 			statement.close();
@@ -356,10 +355,10 @@ public class Datos {
 				datos += resultSet.getString("partidaID").trim()+"&";
 				String usuario2=resultSet.getString("usuario2").trim();
 				datos += usuario2+"&";
-				if(getUltimoTurnoUsuario(Integer.parseInt(resultSet.getString("partidaID").trim())).equals(usuario)) {
-					datos += "quieto&";
-				}else {
+				if(!getUltimoTurnoUsuario(Integer.parseInt(resultSet.getString("partidaID").trim())).equals(usuario)) {
 					datos += "mueve&";
+				}else {
+					datos += "quieto&";
 				}
 				if(isConected(usuario2)) {
 					datos +="conectado_";
@@ -386,10 +385,11 @@ public class Datos {
 				datos += resultSet.getString("partidaID").trim()+"&";
 				String usuario1=resultSet.getString("usuario1").trim();
 				datos += usuario1+"&";
-				if(getUltimoTurnoUsuario(Integer.parseInt(resultSet.getString("partidaID").trim())).equals(usuario)) {
-					datos += "quieto&";
-				}else {
+				if(!getUltimoTurnoUsuario(Integer.parseInt(resultSet.getString("partidaID").trim())).equals(usuario)&&
+						(!getUltimoTurnoUsuario(Integer.parseInt(resultSet.getString("partidaID").trim())).equals("null"))) {
 					datos += "mueve&";
+				}else {
+					datos += "quieto&";
 				}
 				if(isConected(usuario1)) {
 					datos +="conectado_";
@@ -431,12 +431,8 @@ public class Datos {
 			Statement statement = connection.createStatement();
 			ResultSet resultSet = statement.executeQuery(
 					"SELECT turnoID FROM turno WHERE partidaID = "+partidaID+" && columna = "+columna+" && fila = "+fila+";");
-			if (resultSet.next()) {
-	            String id = resultSet.getString("turnoID").trim();
-	            if(id.equals(null)) {
-	            	System.out.println("El id era: "+id);
-	            	ocupado=false;
-	            }
+			if (!resultSet.next()) {
+            	ocupado=false;
 	        }
 			statement.close();
 			connection.close();
@@ -494,16 +490,14 @@ public class Datos {
 			ResultSet resultSet = statement.executeQuery("SELECT ganador FROM partida WHERE partidaID = "+partidaID+";");
 			
 			if (resultSet.next()) {
-				try {
-					String recoge = resultSet.getString("ganador").trim();
-					System.out.println("Lo que recoje el si es terminada: "+recoge);
-				}catch (Exception e) {
+				String ganador = resultSet.getString("ganador");
+				if(ganador==null) {
+					System.out.println("No termino");
 					termino=false;
 				}
-//	            if(recoge.equals(null)) {
-//	            	
-//	            }
 	        }
+			System.out.println(termino);
+			
 			resultSet.close();
 			statement.close();
 			connection.close();

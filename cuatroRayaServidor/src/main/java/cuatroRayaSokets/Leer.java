@@ -51,8 +51,8 @@ public class Leer implements Runnable{
 				case "turno":
 					turno(Integer.parseInt(valores[1]),Integer.parseInt(valores[2]));//columna,fila
 					break;
-				case "isGanador":
-					isGanador();
+				case "isTerminada":
+					isTerminada();
 					break;
 				case "getUltimoTurno":
 					getUltimoTurno();
@@ -82,7 +82,10 @@ public class Leer implements Runnable{
 					refrescarPartida();
 					break;
 				case "replay":
-					replay(Integer.parseInt(valores[1]));//partidaID del replay, lo que manda son todos los turnos usuario-columna-fila_usuario-columna-fila
+					replay(Integer.parseInt(valores[1]));//partidaID del replay, lo que manda son tamaño, todos los turnos usuario&columna&fila_usuario&columna&fila
+					break;
+				case "replaysin":
+					replay();//lo que manda son tamaño, todos los turnos usuario&columna&fila_usuario&columna&fila
 					break;
 				}
 			
@@ -207,35 +210,32 @@ public class Leer implements Runnable{
 	}
 	
 	void turno(int columna, int fila) {
+		System.out.println("La partida usuario columna fila "+partidaAct+usser+columna+fila);
 		
-		if(base.getUsuario1(this.partidaAct).equals(this.usser)&&base.getUltimoTurnoUsuario(this.partidaAct).equals("null")) {				
-//			base.insertPosicion(partidaAct, usser, columna, fila);
+		if(base.getUsuario1(this.partidaAct).equals(this.usser)&&base.getUltimoTurnoUsuario(this.partidaAct).equals("null")) {	
+			
+			base.insertPosicion(partidaAct, usser, columna, fila);
+			
 			System.out.println("todo bien coloca ficha turno 1");
-			Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"true"));
-			escribir.start();
-		}//else if(!/*<|---El ultimo turno NO es del usuario*/base.getUltimoTurnoUsuario(this.partidaAct).equals(this.usser)
-//				&&base.isTerminada(partidaAct).equals(false)) {	//si no esta acabada claro
-//			
-//			System.out.println("La partida usuario columna fila "+partidaAct+usser+columna+fila);
-//			if(base.ocupado(partidaAct, columna, fila)==false) {//si no esta ocupado coloca
-//				base.insertPosicion(partidaAct, usser, columna, fila);
-//				Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"true"));
-//				System.out.println("todo bien coloca ficha");
-//				escribir.start();
-//			}else {
-//				Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"false"));
-//				System.out.println("esta ocupado");
-//				escribir.start();
-//			}
-//		//si es el usuario1 y devolvio null es el primer turno
-//		}else {
-//			Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"false"));
-//			System.out.println("ni le toca ni es el 1");
-//			escribir.start();
-//		}
+		}else if(!/*<|---El ultimo turno NO es del usuario*/base.getUltimoTurnoUsuario(this.partidaAct).equals(this.usser)
+				&&base.isTerminada(partidaAct)==false//si no esta acabada claro
+				&&!base.getUltimoTurnoUsuario(this.partidaAct).equals("null")) {//tampoco puede ser el turno 1
+			
+			if(base.ocupado(partidaAct, columna, fila)==false) {//si no esta ocupado coloca
+				
+				base.insertPosicion(partidaAct, usser, columna, fila);
+				
+				System.out.println("todo bien coloca ficha");
+				
+				isGanador();
+			}else {
+				
+				System.out.println("esta ocupado");
+			}
+		}else {
+			System.out.println("no le toca o no es el jugador 1");
+		}
 	}
-		
-	
 	
 	void isGanador() {
 	    int tamaño = base.getTablero(partidaAct);
@@ -266,11 +266,7 @@ public class Leer implements Runnable{
 	    
 	    if(compruebaLineas(tablero, Integer.parseInt(lastUser[2]), Integer.parseInt(lastUser[1]), lastUser[0])) {
 	    	base.ganar(partidaAct);
-	    	Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"true"));
-			escribir.start();
-	    }else {
-	    	Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"false"));
-			escribir.start();
+	    	System.out.println("Gano la partida el jugador: "+lastUser[0]);
 	    }
 	    
 	    
@@ -279,6 +275,7 @@ public class Leer implements Runnable{
 	boolean compruebaLineas(String[][] tablero, int fila, int columna, String usuario) {//comprobar si hay un 4 en raya en alguna direccion
 	    Boolean cuatroEnRaya=false;
 		String secuenciaGanadora=usuario+"-"+usuario+"-"+usuario+"-"+usuario;
+		String secuenciaGanadoraDos=usuario+"-"+usuario+"-"+usuario;
 		
 		// Construir la línea horizontal completa a partir del tablero
 	    String getFila = "";
@@ -312,7 +309,7 @@ public class Leer implements Runnable{
 	        i++;
 	        j++;
 	    }
-	    if (getDiagonalI.contains(secuenciaGanadora)) {
+	    if (getDiagonalI.contains(secuenciaGanadoraDos)) {
 	        cuatroEnRaya = true;
 	    }
 
@@ -329,11 +326,21 @@ public class Leer implements Runnable{
 	        i++;
 	        j--;
 	    }
-	    if (getDiagonalD.contains(secuenciaGanadora)) {
+	    if (getDiagonalD.contains(secuenciaGanadoraDos)) {
 	        cuatroEnRaya = true;
 	    }
 	    
 	    return cuatroEnRaya;
+	}
+	
+	private void isTerminada() {
+		if(base.isTerminada(this.partidaAct)==true) {
+			Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"true"));
+			escribir.start();
+		}else {
+			Thread escribir = new Thread(new Escribir(canal,"boolean"+"-"+"false"));
+			escribir.start();
+		}
 	}
 	
 	void getUltimoTurno() {//devuelve usuario&columna&fila
@@ -354,7 +361,8 @@ public class Leer implements Runnable{
 	}
 	
 	void dimitir() {
-		if(base.isTerminada(this.partidaAct).equals(false)) {
+		if(base.isTerminada(this.partidaAct)==false) {
+			System.out.println("Dimitio el jugador: "+this.usser+this.partidaAct);
 			base.dimitir(this.partidaAct);
 		}
 	}
@@ -362,6 +370,13 @@ public class Leer implements Runnable{
 	void replay(int partida) {//tamaño_usuario&columna&fila_...
 		int tamaño=base.getTablero(partida);
 		String datos=tamaño+"_"+base.getTurnos(partida);
+		
+		Thread escribir = new Thread(new Escribir(canal,"Array"+"-"+datos));
+		escribir.start();
+	}
+	void replay() {//tamaño_usuario&columna&fila_...
+		int tamaño=base.getTablero(this.partidaAct);
+		String datos=tamaño+"_"+base.getTurnos(this.partidaAct);
 		
 		Thread escribir = new Thread(new Escribir(canal,"Array"+"-"+datos));
 		escribir.start();
